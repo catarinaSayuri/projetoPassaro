@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <title>Exercício do Pássaro</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+
+        var config = {
+            type: Phaser.AUTO,
+            width: 800, 
+            height: 600,
+            scene: {    
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        var game = new Phaser.Game(config); 
+
+        // Variáveis para armazenar os pássaros e seus respectivos dados
+        var birds = [];
+        var speeds = [2, 3, 1.5];  // Velocidades de cada pássaro
+        var directions = [1, 1, 1];  // Direções horizontais de cada pássaro
+        var verticalDirections = [1, 1, 1];  // Direções verticais de cada pássaro
+        var startPositionsX = [100, 200, 300];  // Posições iniciais dos pássaros no eixo X
+        var startPositionsY = [300, 250, 200];  // Posições iniciais dos pássaros no eixo Y
+        var spriteKeys = ['redBird', 'greenBird', 'purpleBird'];  // Chaves dos sprites de cada pássaro
+
+        // Função para carregar as imagens/spritesheets
+        function preload() {
+            this.load.image('bg', 'assets/ceuBonito.avif');   // Carrega a imagem do fundo (ceu azul)
+            this.load.spritesheet('redBird', 'assets/bird-red.png', { frameWidth: 75, frameHeight: 75 }); // Carrega o sprite do pássaro vermelho
+            this.load.spritesheet('greenBird', 'assets/bird-green.png', { frameWidth: 75, frameHeight: 75 }); // Carrega o sprite do pássaro verde
+            this.load.spritesheet('purpleBird', 'assets/bird-purple.png', { frameWidth: 75, frameHeight: 75 }); // Carrega o sprite do pássaro roxo
+        }
+
+        // Função chamada p editar/configurar os elementos
+        function create() {
+            this.add.image(400, 300, 'bg').setScale(1.4); // define o fundo
+
+            // Criação dos pássaros e suas animações
+            for (let i = 0; i < spriteKeys.length; i++) {
+                let bird = this.add.sprite(startPositionsX[i], startPositionsY[i], spriteKeys[i]).setScale(1.3);
+                bird.anims.create({
+                    key: `fly${i}`,
+                    frames: this.anims.generateFrameNumbers(spriteKeys[i], { start: 0, end: 7 }),
+                    frameRate: 10,
+                    repeat: -1
+                });
+                bird.anims.play(`fly${i}`, true); // Reproduz a animação para o pássaro
+                birds.push(bird);  // Adiciona o pássaro à lista de pássaros
+            }
+        }
+
+        // Função chamada a cada atualização do jogo
+        function update() {
+            // Itera sobre todos os pássaros e aplica as funções de movimento
+            for (let i = 0; i < birds.length; i++) {
+                moveBird(birds[i], speeds[i], 100 + i * 100, 700 - i * 50, 300 - i * 50, 150 + i * 50, 2 + i, directions[i], verticalDirections[i]);
+                directions[i] = changeDirection(birds[i], directions[i], 100 + i * 100, 700 - i * 50); // Checa se a direção horizontal deve ser invertida
+                verticalDirections[i] = changeVerticalDirection(birds[i], verticalDirections[i]); // Checa se a direção vertical deve ser invertida
+            }
+        }
+
+        // Função para mover os pássaros no eixo X e Y
+        function moveBird(bird, speed, startX, endX, startY, maxY, moveSpeed, direction, verticalDirection) {
+            bird.x += speed * direction;  // Movimento horizontal do pássaro
+
+            // Movimento vertical baseado em um seno, para dar um movimento mais orgânico
+            bird.y += Math.sin(bird.x * 0.05) * moveSpeed * verticalDirection;
+
+            // Limita a posição do pássaro para não sair da tela
+            if (bird.y < 0) bird.y = 0;
+            else if (bird.y > 600) bird.y = 600;
+
+            // Inverte a direção do pássaro quando ele chega nos limites da tela
+            if (bird.x >= endX || bird.x <= startX) {
+                bird.setFlipX(direction === 1);  // Inverte a direção horizontal
+            }
+        }
+
+        // Função para mudar a direção horizontal quando o pássaro atinge os limites
+        function changeDirection(bird, direction, startX, endX) {
+            if (bird.x >= endX || bird.x <= startX) {
+                direction *= -1;  // Inverte a direção horizontal
+            }
+            return direction;
+        }
+
+        // Função para mudar a direção vertical quando o pássaro atinge o topo ou o fundo da tela
+        function changeVerticalDirection(bird, verticalDirection) {
+            if (bird.y <= 0 || bird.y >= 600) {
+                verticalDirection *= -1;  // Inverte a direção vertical
+            }
+            return verticalDirection;
+        }
+
+    </script>
+
+</body>
+
+</html>
